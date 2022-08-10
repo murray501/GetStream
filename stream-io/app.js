@@ -21,7 +21,6 @@ nextApp.prepare().then(
 
     const ioAddRule = io.of('/addrule')
     ioAddRule.on('connection', socket => {
-        console.log('connected addrule')
         socket.on('addrule', async (data) => {
             const result = await addRule(data.rule, data.tag)
             socket.emit('addrule', result)
@@ -30,9 +29,7 @@ nextApp.prepare().then(
 
     const ioGetRules = io.of('/getrules')
     ioGetRules.on('connection', async (socket) => {
-        console.log('connected getrules')
         const result = await getAllRules()
-        console.log(result)
         socket.emit('rules', result)
         
         socket.on('delete', data => {
@@ -62,8 +59,7 @@ async function streamConnect(retryAttempt, io) {
   stream.on('data', data => {
       try {
           const json = JSON.parse(data);
-          const newData = {id: json.data.id, text: json.data.text}
-          io.emit('tweet', newData)
+          io.emit('tweet', json)
 
           // A successful connection resets retry count.
           retryAttempt = 0
