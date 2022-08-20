@@ -1,34 +1,35 @@
 import { useEffect, useState } from 'react'
 import io from 'socket.io-client'
 
-import { Form, Checkbox } from '../components/hooks';
-import { removeHashtag, convertToHtml } from '../components';
+import { Form, Checkbox, Bookmark } from '../components/hooks'
+import { removeHashtag, convertToHtml } from '../components'
 
 export default function Index() {
     const [tweets, setTweets] = useState()
     const [rules, setRules] = useState()
     const [buffersize, setBufferSize] = useState(10)
     const [CheckboxHashtag, checkedHashtag] = Checkbox("remove #@ ");
+    const [socket, setSocket] = useState()
 
     function setBuffSize(value) {
         setBufferSize(parseInt(value))
     }
 
     useEffect(() => {
-        const socket = io('/getrules')
+        const _socket = io('/getrules')
         
-        socket.on('rules', res => {
+        _socket.on('rules', res => {
           setRules(res?.data)
         })
   
-        return () => socket?.close()
+        return () => _socket.close()
     }, [])
 
     useEffect(() => {
-        const socket = io('/tweets')
+        const _socket = io('/tweets')
         const buffer = []
 
-        socket.on('tweet', tweet => {
+        _socket.on('tweet', tweet => {
             buffer.unshift(tweet)
             if (buffer.length > buffersize) {
                 buffer.pop()
@@ -36,7 +37,8 @@ export default function Index() {
             setTweets([...buffer])
         })
 
-        return () => socket.close()
+        setSocket(_socket)
+        return () => _socket.close()
 
     }, [])
     
@@ -85,6 +87,11 @@ export default function Index() {
                         <p><small>{convertToHtml(text)}</small></p>        
                     </div>
                 </div>
+                <nav class="level is-mobile">
+                    <div class="level-left">
+                        <Bookmark tweet={tweet} />
+                    </div>
+                </nav>
             </article>
         )
     }
@@ -102,8 +109,30 @@ export default function Index() {
                     <div class="content">
                         <p><small>{convertToHtml(text)}</small></p>
                     </div>
+                    <nav class="level is-mobile">
+                        <div class="level-left">
+                            <Bookmark tweet={tweet} />
+                        </div>
+                    </nav>
                 </div>
             </article>
+        )
+    }
+
+    function Bookmark({tweet}) {
+        const [bookmarked, setBookmarked] = useState(false);
+        
+        function add() {
+          socket?.emit('save', tweet)
+          setBookmarked(true)
+        }
+      
+        if (bookmarked) return
+      
+        return (
+          <div class="level-item">
+              <a onClick={add}><span class="icon"><i class="fas fa-solid fa-bookmark"></i></span></a> 
+          </div>
         )
     }
 }

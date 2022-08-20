@@ -4,6 +4,33 @@ const next = require('next')
 const Server = require('socket.io')
 const axios = require('axios')
 
+const mongoose = require('mongoose')
+const uri = "mongodb://localhost:27017/tweets"
+
+mongoose.connect(uri);
+const connection = mongoose.connection
+connection.once('open', function() {
+    console.log("MongoDB database connection established successfully");
+})
+
+const tweetSchema = new mongoose.Schema({
+    id: String,
+    text: String,
+    tag: String,
+    tagid: String
+})
+
+const Tweet = mongoose.model('Tweet', tweetSchema)
+
+function saveTweet(json) {
+    const tweet = new Tweet({id: json.data.id, text: json.data.text, 
+            tagid: json.matching_rules[0].id, tag: json.matching_rules[0].tag})
+    
+    tweet.save().then(function(err, result) {
+        console.log('tweet created')
+    });
+}
+
 const token = process.env.BEARER_TOKEN;
 const streamURL = 'https://api.twitter.com/2/tweets/search/stream';
 const baseURL = "https://api.twitter.com/2/";
@@ -15,8 +42,12 @@ nextApp.prepare().then(
   async () => {
     const server = http.createServer(nextApp.getRequestHandler()).listen(3000)
     const io = Server(server)
- 
     const ioTweets = io.of('/tweets')
+    ioTweets.on('connection', socket => {
+        socket.on('save', (data) => {
+            saveTweet(data)
+        })
+    })
     await streamConnect(0, ioTweets)
 
     const ioAddRule = io.of('/addrule')
@@ -59,6 +90,7 @@ async function streamConnect(retryAttempt, io) {
   stream.on('data', data => {
       try {
           const json = JSON.parse(data);
+          //console.log(json)
           io.emit('tweet', json)
 
           // A successful connection resets retry count.
