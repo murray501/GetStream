@@ -1,2 +1,2 @@
 # GetStream
-Get Twitter filteredstream
+Twitter filteredstream
