@@ -28,7 +28,21 @@ function saveTweet(json) {
     
     tweet.save().then(function(err, result) {
         console.log('tweet created')
-    });
+    })
+}
+
+async function getTweets() {
+    const tweets = await Tweet.find()
+    console.log('get tweets', tweets)
+    return tweets
+}
+
+function deleteTweet(id) {
+    Tweet.deleteOne({id: id}).then(function(err) {
+        if (err) {
+            console.error(err)
+        } 
+    })
 }
 
 const token = process.env.BEARER_TOKEN;
@@ -67,6 +81,17 @@ nextApp.prepare().then(
             deleteRule(data.id)
         })
     })
+
+    const ioGetBookmarks = io.of('/bookmarks')
+    ioGetBookmarks.on('connection', async (socket) => {
+        const result = await getTweets()
+        socket.emit('tweets', result)
+
+        socket.on('delete', data => {
+            deleteTweet(data.id)
+        })        
+    })
+
   },
   err => {
     console.error(err)

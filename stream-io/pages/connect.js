@@ -7,9 +7,10 @@ import { removeHashtag, convertToHtml } from '../components'
 export default function Index() {
     const [tweets, setTweets] = useState()
     const [rules, setRules] = useState()
-    const [buffersize, setBufferSize] = useState(10)
+    const [buffersize, setBufferSize] = useState(100)
     const [CheckboxHashtag, checkedHashtag] = Checkbox("remove #@ ");
     const [socket, setSocket] = useState()
+    const [bookmarked, setBookmarked] = useState([])
 
     function setBuffSize(value) {
         setBufferSize(parseInt(value))
@@ -120,15 +121,16 @@ export default function Index() {
     }
 
     function Bookmark({tweet}) {
-        const [bookmarked, setBookmarked] = useState(false);
         
         function add() {
           socket?.emit('save', tweet)
-          setBookmarked(true)
+          setBookmarked([tweet.data.id, ...bookmarked])
         }
       
-        if (bookmarked) return
-      
+        if (bookmarked.includes(tweet.data.id)) {
+            return
+        }
+
         return (
           <div class="level-item">
               <a onClick={add}><span class="icon"><i class="fas fa-solid fa-bookmark"></i></span></a> 

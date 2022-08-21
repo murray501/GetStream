@@ -11,6 +11,7 @@ export default function Index() {
                 <Item url="/addrule" title="add rule" />
                 <Item url="/getrules" title="get all rules" />
                 <Item url="/connect" title="connect" />
+                <Item url="/bookmark" title="get all bookmarks" />
             </nav>
         </section>
     </div>
