@@ -52,3 +52,10 @@ export function Checkbox(label, init_value=false) {
   ];
 }
 
+export const useInput2 = () => {
+  const [value, setValue] = useState();
+  return [
+    { value, onChange: e => setValue(e.target.value) },
+    (val) => setValue(val)
+  ];
+};

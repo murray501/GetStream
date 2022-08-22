@@ -1,8 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useInput } from "../components/hooks";
 import io from 'socket.io-client'
+import { Query } from '../components/advance';
 
-export default function Index() {  
+export default function Index() {
+    return (
+        <Query renderResult={(query, setQuery) => 
+            <AddRule query={query} setQuery={setQuery} />} />  
+    )
+}
+
+function AddRule({query, setQuery = f => f}) {  
     const [socket, setSocket] = useState()
 
     useEffect(() => {
@@ -23,42 +31,35 @@ export default function Index() {
     return (
         <section class="hero is-size-7">
         <div class="hero-body">
-            <AddRuleForm onAddRule={onAddRule} />    
+            <AddRuleForm />    
         </div>
         </section>        
     )
-}
 
-function AddRuleForm({onAddRule = f => f}) {
-    const [ruleProps, resetRule] = useInput("");
-    const [tagProps, resetTag] = useInput("");
+    function AddRuleForm() {
+        const [tagProps, resetTag] = useInput("");
+        
+        const submit = e => {
+            e.preventDefault();
+            onAddRule(query, tagProps.value);
+            setQuery(null);
+            resetTag();
+        };
     
-    const submit = e => {
-        e.preventDefault();
-        onAddRule(ruleProps.value, tagProps.value);
-        resetRule();
-        resetTag();
-    };
-
-    return (
-      <form onSubmit={submit}>
-        <div class="field">
-            <input class="input"
-              {...ruleProps}
-              type="text"
-              placeholder="Rule..."
-              required
-            />
-        </div>
-        <div class="field">
-            <input class="input"
-              {...tagProps}
-              type="text"
-              placeholder="Tag..."
-              required
-            />
-        </div>
-        <button class="button">Add Rule</button>
-      </form>
-    );
+        return (
+          <form onSubmit={submit}>
+            <div class="field">
+                <input class="input"
+                  {...tagProps}
+                  type="text"
+                  placeholder="Tag..."
+                  required
+                />
+            </div>
+            <button class="button">Add Rule</button>
+          </form>
+        );
+    }
 }
+
+
